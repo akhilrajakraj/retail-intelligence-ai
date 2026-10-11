@@ -1,0 +1,5 @@
+cluster,segment_name,customers,median_recency_days,median_frequency,median_monetary,mean_monetary,percentage
+0,Regular Mid-Value Customers,944,41.33,3.0,1016.1,1286.0,27.36
+1,Less-Recent Low-Frequency Customers,1281,71.57,1.0,254.28,286.46,37.13
+2,Recent Occasional Customers,673,8.6,2.0,439.66,538.66,19.51
+3,Recent High-Value Loyalists,552,8.38,7.0,2611.0,5513.86,16.0

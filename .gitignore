@@ -1,0 +1,35 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Raw data: never commit the original dataset
+data/raw/*
+
+# Processed data: allow only the file required by the dashboard
+data/processed/*
+!data/processed/customer_segments.parquet
+
+# Trained model artifacts required by the backend
+# Review their sizes before committing
+!artifacts/
+artifacts/*
+!artifacts/inactivity_logistic_regression.joblib
+!artifacts/inactivity_model_metadata.json
+!artifacts/customer_segmentation_kmeans.joblib
+!artifacts/rfm_standard_scaler.joblib
+!artifacts/segmentation_metadata.json
+
+# Generated files
+.DS_Store

@@ -1,0 +1,21 @@
+{
+  "model_name": "K-Means Customer Segmentation",
+  "model_version": "1.0.0",
+  "n_clusters": 4,
+  "random_state": 42,
+  "reference_date": "2011-12-01",
+  "observation_window_days": 180,
+  "features": [
+    "recency_days",
+    "frequency",
+    "monetary"
+  ],
+  "transform": "numpy.log1p followed by StandardScaler",
+  "segment_names": {
+    "0": "Regular Mid-Value Customers",
+    "1": "Less-Recent Low-Frequency Customers",
+    "2": "Recent Occasional Customers",
+    "3": "Recent High-Value Loyalists"
+  },
+  "interpretation_note": "Segment names describe historical RFM patterns; they are not guaranteed future outcomes."
+}

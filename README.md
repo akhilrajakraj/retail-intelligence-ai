@@ -2,7 +2,7 @@
 
 An end-to-end machine learning portfolio project for exploring customer behavior, identifying customer segments, and estimating near-term customer inactivity from historical retail transactions.
 
-The project combines a **FastAPI** backend, a **React + Vite** dashboard, and trained scikit-learn models. It is intended for learning, analytics demonstrations, and exploratory retention prioritization—not as an automated decision system.
+The project combines a **FastAPI** backend, a **React + Vite** dashboard, and trained scikit-learn models. The dashboard includes working Overview, Customer segments, and Inactivity model views with responsive navigation and a live prediction form. It is intended for learning, analytics demonstrations, and exploratory retention prioritization—not as an automated decision system.
 
 ## Highlights
 
@@ -101,6 +101,10 @@ retail-intelligence-ai/
 │   ├── ARCHITECTURE.md
 │   ├── package.json
 │   └── vite.config.js
+├── tests/
+│   └── test_api.py
+├── .github/workflows/ci.yml
+├── requirements.txt
 ├── ml/
 │   └── data/
 │       └── audit.py

@@ -54,7 +54,6 @@ function Navigation({ activeView, onNavigate, compact = false }) {
             key={id}
             type="button"
             aria-current={active ? 'page' : undefined}
-            aria-pressed={active}
             onClick={() => onNavigate(id)}
             className={
               (compact ? 'shrink-0 whitespace-nowrap ' : 'mt-2 w-full ') +

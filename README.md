@@ -2,7 +2,7 @@
 
 An end-to-end machine learning portfolio project for exploring customer behavior, identifying customer segments, and estimating near-term customer inactivity from historical retail transactions.
 
-The project combines a **FastAPI** backend, a **React + Vite** dashboard, and trained scikit-learn models. It is intended for learning, analytics demonstrations, and exploratory retention prioritization—not as an automated decision system.
+The project combines a **FastAPI** backend, a **React + Vite** dashboard, and trained scikit-learn models. The dashboard includes working Overview, Customer segments, and Inactivity model views with responsive navigation and a live prediction form. It is intended for learning, analytics demonstrations, and exploratory retention prioritization—not as an automated decision system.
 
 ## Highlights
 
@@ -89,12 +89,22 @@ retail-intelligence-ai/
 │       └── customer_segments.parquet
 ├── frontend/
 │   ├── src/
+│   │   ├── app/
+│   │   ├── components/
+│   │   ├── features/
+│   │   ├── services/api/
+│   │   ├── utils/
 │   │   ├── App.jsx
 │   │   ├── api.js
 │   │   ├── index.css
 │   │   └── main.jsx
+│   ├── ARCHITECTURE.md
 │   ├── package.json
 │   └── vite.config.js
+├── tests/
+│   └── test_api.py
+├── .github/workflows/ci.yml
+├── requirements.txt
 ├── ml/
 │   └── data/
 │       └── audit.py
@@ -130,7 +140,7 @@ From the repository root:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install fastapi "uvicorn[standard]" pandas numpy scikit-learn==1.6.1 joblib pyarrow
+python -m pip install -r requirements.txt
 ```
 
 If PowerShell blocks virtual-environment activation, use Command Prompt instead:
@@ -157,7 +167,7 @@ Open a second terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
@@ -170,6 +180,12 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 Restart the Vite development server after changing environment variables.
+
+### 4. Verify the application
+
+From `frontend/`, run `npm run lint` and `npm run build`. From the repository root, run `python -m pytest -q` and `python -m compileall -q backend`. The API tests require the Python dependencies in `requirements.txt` and the committed model/data artifacts.
+
+For the frontend folder responsibilities and Hook/component design, see [Frontend Architecture Guide](frontend/ARCHITECTURE.md).
 
 ## API reference
 

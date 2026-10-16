@@ -1,206 +1,164 @@
 # Retail Intelligence AI
 
-An end-to-end machine learning portfolio project for exploring customer behavior, identifying customer segments, and estimating near-term customer inactivity from historical retail transactions.
+A retail analytics application built around historical transaction data. It combines customer segmentation, a time-bounded inactivity model, a React dashboard, and a FastAPI service so the analysis can be explored through a browser and an API.
 
-The project combines a **FastAPI** backend, a **React + Vite** dashboard, and trained scikit-learn models. The dashboard includes working Overview, Customer segments, and Inactivity model views with responsive navigation and a live prediction form. It is intended for learning, analytics demonstrations, and exploratory retention prioritization—not as an automated decision system.
+**Repository:** [akhilrajakraj/retail-intelligence-ai](https://github.com/akhilrajakraj/retail-intelligence-ai)  
+**Dataset:** [UCI Online Retail II](https://doi.org/10.24432/C5CG6D)
 
-## Highlights
+## What the application does
 
-- **Customer segmentation:** K-Means clustering over recency, frequency, and monetary (RFM) features.
-- **Inactivity prediction:** Logistic Regression estimates whether a customer will make no qualifying purchase during the 90 days after a snapshot cutoff.
-- **Interactive dashboard:** View segment summaries, model information and health, and submit customer metrics for a prediction.
-- **API:** FastAPI endpoints with request validation and interactive API documentation.
-- **Saved artifacts:** Persisted models, preprocessing objects, metadata, and processed segment assignments.
-- **Model documentation:** Evaluation results, intended uses, and limitations are documented in [the model card](reports/model_card.md).
+The dashboard has three views:
 
-## Tech stack
+- **Overview** — customer and segment summary metrics, the segment distribution chart, and inactivity-model evaluation metrics.
+- **Customer segments** — a breakdown of the four K-Means groups and their historical purchasing profiles.
+- **Inactivity model** — a form that submits customer-level metrics to the API and displays the model's estimated inactivity probability and classification.
 
-| Layer | Technologies |
+The API loads saved model artifacts and processed segment data from the repository. The frontend and backend run as separate local development servers.
+
+## Technology
+
+| Area | Tools |
 | --- | --- |
 | Frontend | React, Vite, Tailwind CSS, Recharts, Lucide |
-| Backend | Python, FastAPI, Pydantic, Uvicorn |
+| API | Python, FastAPI, Pydantic, Uvicorn |
 | Machine learning | scikit-learn, pandas, NumPy, joblib |
-| Data format | Parquet |
+| Data storage | Parquet |
+| Quality checks | pytest, Oxlint, GitHub Actions |
 
-## Machine learning overview
+## Models and evaluation
 
-### 1. Customer inactivity prediction
+### Customer inactivity
 
-- **Algorithm:** Logistic Regression
-- **Observation window:** 180 days
-- **Prediction horizon:** 90 days
-- **Decision threshold:** approximately 0.413, selected on validation data
-- **Validation ROC-AUC:** 0.7430
-- **Test ROC-AUC:** 0.7335
-- **Test average precision:** 0.5999
-- **Test precision / recall:** 0.4862 / 0.9229
+The inactivity classifier is a Logistic Regression model trained to estimate whether a customer will make no qualifying purchase during a defined future period.
 
-The model uses eight customer-level features: `frequency`, `purchase_lines`, `monetary`, `average_line_value`, `unique_products`, `average_quantity`, `recency_days`, and `average_order_value`.
+| Setting or metric | Value |
+| --- | ---: |
+| Observation window | 180 days |
+| Prediction horizon | 90 days |
+| Decision threshold | Approximately 0.413 |
+| Validation ROC-AUC | 0.7430 |
+| Test ROC-AUC | 0.7335 |
+| Test average precision | 0.5999 |
+| Test precision | 0.4862 |
+| Test recall | 0.9229 |
+| Test F1-score | 0.6369 |
 
-**Interpretation:** The target is inactivity within a defined 90-day period; it is not proof of permanent churn. Test precision is relatively low, so some customers flagged by the model may still purchase. Predicted probabilities have not been evaluated for calibration. Review the full [model card](reports/model_card.md) before interpreting results.
+The model accepts eight features: `frequency`, `purchase_lines`, `monetary`, `average_line_value`, `unique_products`, `average_quantity`, `recency_days`, and `average_order_value`.
 
-### 2. Customer segmentation
+These figures describe evaluation on the project's historical test split; they are not a guarantee of performance on current retail data. The decision threshold was selected using validation data. Predicted probabilities have not been calibrated. Because test precision is 0.4862, a substantial share of customers flagged by the model may still make a purchase.
 
-- **Algorithm:** K-Means
-- **Clusters:** 4
-- **Features:** recency, frequency, and monetary value
-- **Preprocessing:** `log1p` transformation followed by `StandardScaler`
-- **Reference date:** 2011-12-01
-- **Observation window:** 180 days
+### Customer segmentation
 
-Current descriptive cluster names:
+K-Means groups customers using recency, frequency, and monetary features. The pipeline applies a `log1p` transformation and standard scaling before assigning four clusters. The current segment labels describe historical purchasing patterns; they should not be interpreted as permanent customer identities.
 
-1. Regular Mid-Value Customers
-2. Less-Recent Low-Frequency Customers
-3. Recent Occasional Customers
-4. Recent High-Value Loyalists
+The project retained four clusters to provide more differentiated profiles, although a two-cluster solution had a higher silhouette score. This is a trade-off between a compact clustering structure and a more detailed segmentation that is easier to explore in the dashboard.
 
-These labels summarize historical RFM patterns; they are not permanent customer attributes. Four clusters were retained to provide differentiated business segments, although the two-cluster solution had a higher silhouette score.
+More detail on intended use, evaluation, and limitations is available in [the model card](reports/model_card.md).
 
-## Dataset
+## Data
 
-The project is based on the **UCI Online Retail II** dataset (transactions from 2009–2011).
+The project uses the UCI Online Retail II dataset, containing historical retail transactions from 2009–2011.
 
-- Dataset page / DOI: https://doi.org/10.24432/C5CG6D
-- The original raw transaction dataset is not included in this repository.
-- A processed customer-segmentation file is included at `data/processed/customer_segments.parquet`.
+- Dataset record and DOI: https://doi.org/10.24432/C5CG6D
+- The original raw transaction files are not included in this repository.
+- The processed customer-segment data used by the API is stored at `data/processed/customer_segments.parquet`.
+- Model artifacts and metadata are stored under `artifacts/`.
 
-Because the source data is historical and UK-specific, performance and customer patterns may not generalize to current retail settings without further validation.
+The source data is historical and UK-specific. Results should be validated against recent, representative data before any business use.
 
-## Repository structure
+## Repository layout
 
 ```text
 retail-intelligence-ai/
-├── artifacts/
-│   ├── customer_segmentation_kmeans.joblib
-│   ├── inactivity_logistic_regression.joblib
-│   ├── inactivity_model_metadata.json
-│   ├── rfm_standard_scaler.joblib
-│   └── segmentation_metadata.json
-├── backend/
-│   └── app/
-│       ├── analytics.py
-│       ├── main.py
-│       ├── models.py
-│       ├── predictions.py
-│       └── schemas.py
-├── data/
-│   └── processed/
-│       └── customer_segments.parquet
+├── artifacts/                 # Saved models, preprocessing objects, and metadata
+├── backend/app/               # FastAPI routes, schemas, analytics, and inference
+├── data/processed/             # Processed customer segment data
 ├── frontend/
 │   ├── src/
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── features/
-│   │   ├── services/api/
-│   │   ├── utils/
-│   │   ├── App.jsx
-│   │   ├── api.js
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── ARCHITECTURE.md
-│   ├── package.json
-│   └── vite.config.js
-├── tests/
-│   └── test_api.py
-├── .github/workflows/ci.yml
-├── requirements.txt
-├── ml/
-│   └── data/
-│       └── audit.py
-└── reports/
-    ├── customer_segment_profiles.csv
-    └── model_card.md
+│   │   ├── app/                # App composition and view navigation
+│   │   ├── components/         # Shared layout and UI components
+│   │   ├── features/           # Overview, segments, and inactivity features
+│   │   ├── services/api/       # Frontend API client and endpoint functions
+│   │   └── utils/              # Shared formatting helpers
+│   └── ARCHITECTURE.md         # Frontend structure and design notes
+├── ml/data/                    # Data audit utilities
+├── reports/                    # Model card and segment profiles
+├── tests/                      # Backend API tests
+├── .github/workflows/ci.yml    # Automated checks
+└── requirements.txt            # Python dependencies
 ```
 
-## Getting started
+## Run locally
 
-### Prerequisites
+Run the backend and frontend in separate terminals. The instructions below are for Windows PowerShell; the commands can be adapted for macOS or Linux.
 
-- Python 3.10 or a compatible Python version supported by the installed ML dependencies
+### Requirements
+
+- Python 3.10 or a compatible version supported by the dependencies
 - Node.js and npm
 - Git
 
-Run the backend and frontend in separate terminals.
-
 ### 1. Clone the repository
 
-```bash
+```powershell
 git clone https://github.com/akhilrajakraj/retail-intelligence-ai.git
 cd retail-intelligence-ai
 ```
 
-### 2. Set up the Python backend
+### 2. Install and start the API
 
 From the repository root:
-
-**Windows PowerShell**
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-```
-
-If PowerShell blocks virtual-environment activation, use Command Prompt instead:
-
-```bat
-.venv\Scripts\activate.bat
-```
-
-Start the API from the **repository root**:
-
-```bash
 python -m uvicorn backend.app.main:app --reload
 ```
 
-The API should be available at:
+The API should now be available at:
 
-- Base URL: http://127.0.0.1:8000
-- Swagger UI: http://127.0.0.1:8000/docs
-- ReDoc: http://127.0.0.1:8000/redoc
+- Dashboard API base: http://127.0.0.1:8000
+- Interactive Swagger documentation: http://127.0.0.1:8000/docs
+- ReDoc documentation: http://127.0.0.1:8000/redoc
 
-### 3. Set up the frontend
+Keep this terminal running.
+
+### 3. Install and start the dashboard
 
 Open a second terminal:
 
-```bash
+```powershell
 cd frontend
 npm ci
 npm run dev
 ```
 
-Vite normally serves the dashboard at http://localhost:5173.
+Open http://localhost:5173 in your browser.
 
-The frontend defaults to the local API at `http://127.0.0.1:8000`. To override it, create `frontend/.env.local`:
+The frontend uses `http://127.0.0.1:8000` as the default API base URL. To use a different API address, create `frontend/.env.local` with:
 
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-Restart the Vite development server after changing environment variables.
+Restart the Vite server after changing the environment file.
 
-### 4. Verify the application
+## API endpoints
 
-From `frontend/`, run `npm run lint` and `npm run build`. From the repository root, run `python -m pytest -q` and `python -m compileall -q backend`. The API tests require the Python dependencies in `requirements.txt` and the committed model/data artifacts.
-
-For the frontend folder responsibilities and Hook/component design, see [Frontend Architecture Guide](frontend/ARCHITECTURE.md).
-
-## API reference
-
-| Method | Endpoint | Purpose |
+| Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/` | API welcome message and status |
+| `GET` | `/` | API welcome/status response |
 | `GET` | `/health` | API health check |
-| `GET` | `/api/v1/health/models` | Loaded model health/status |
+| `GET` | `/api/v1/health/models` | Model-loading health status |
 | `GET` | `/api/v1/segments` | Customer segment summary |
 | `GET` | `/api/v1/models/inactivity` | Inactivity model metadata and evaluation metrics |
-| `POST` | `/api/v1/predict/inactivity` | Predict inactivity from customer metrics |
+| `POST` | `/api/v1/predict/inactivity` | Estimate inactivity from customer metrics |
 
 ### Example prediction request
 
-Send a JSON body to `POST /api/v1/predict/inactivity`:
+Send the following JSON to `POST /api/v1/predict/inactivity`:
 
 ```json
 {
@@ -215,36 +173,41 @@ Send a JSON body to `POST /api/v1/predict/inactivity`:
 }
 ```
 
-All eight input fields must be non-negative numbers. The response schema is defined by the running API; use Swagger UI to inspect the live request and response models.
+All eight values must be non-negative numbers. The live response schema is available in Swagger UI at http://127.0.0.1:8000/docs.
 
-## Troubleshooting
+## Run checks
 
-- **Blank frontend page:** Check the browser developer console and the Vite terminal for import/build errors. Confirm `frontend/src/api.js` exports `getSegments`, `getModelInfo`, `getModelHealth`, and `predictInactivity`.
-- **API connection error:** Start FastAPI from the repository root and verify http://127.0.0.1:8000/health.
-- **CORS error:** The current backend configuration allows `http://localhost:5173`. If using a different frontend origin, update `allow_origins` in `backend/app/main.py`.
-- **Model loading errors:** Ensure the files under `artifacts/` are present and that the installed scikit-learn version is compatible with the version used to serialize the models.
-- **Parquet read errors:** Ensure `pyarrow` is installed in the active Python environment.
+From the repository root, with the Python virtual environment activated:
 
-## Limitations and responsible use
+```powershell
+python -m pytest -q
+python -m compileall -q backend
+```
 
-- The dataset contains historical transactions from 2009–2011.
-- Inactivity is a time-bounded target and should not be described as certain or permanent churn.
-- Test precision is modest; review model errors before using predictions to prioritize outreach.
+From the frontend directory:
+
+```powershell
+npm run lint
+npm run build
+```
+
+GitHub Actions runs the frontend lint/build and backend test/syntax checks for pushes and pull requests covered by the workflow.
+
+## Known limitations
+
+- The source transactions date from 2009–2011 and may not represent current customer behaviour.
+- The inactivity label describes a 90-day period; it does not mean a customer has permanently churned.
+- Test precision is modest, so model output should be used as a signal for review rather than a definitive decision.
 - Probability calibration has not been evaluated.
-- Segment names are descriptive summaries, not verified customer personas.
-- Validate against recent, representative data and monitor performance before any operational use.
-- Do not use predictions as the sole basis for denying customers offers, services, or other opportunities.
+- Segment labels are descriptive summaries of cluster-level behaviour, not verified customer personas.
+- The app is a local development and portfolio project. Production use would require current-data validation, monitoring, deployment configuration, and additional operational safeguards.
 
-## Roadmap
+Do not use model predictions as the sole basis for denying customers offers, services, or other opportunities.
 
-Potential next steps:
+## Further work
 
-- Add automated tests for API routes, data validation, and model loading.
-- Add reproducible training and evaluation scripts.
-- Improve experiment tracking and data/model versioning.
-- Add segment-level recommendations and transparent prediction explanations.
-- Package the application for deployment with environment-specific configuration.
+Potential improvements include reproducible model-training scripts, expanded data/model versioning, richer segment-level explanations, broader automated test coverage, and deployment configuration for a hosted environment.
 
 ## License
 
-No license has been specified yet. Unless a license is added, standard copyright applies and reuse is not automatically granted.
+No license has been added to this repository. Until one is specified, the code remains subject to standard copyright; public availability does not automatically grant permission to reuse or redistribute it.
